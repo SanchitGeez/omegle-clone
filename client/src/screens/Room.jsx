@@ -8,7 +8,7 @@ const Room = () => {
     const socket = useSocket();
     const [remoteSocketId, setRemoteSocketId] = useState(null);
     const [myStream, setMyStream] = useState();
-
+    const [remoteStream , setRemoteStream] = useState();
 
     const handleUserJoined = useCallback(async ({Username,id}) => {
         console.log("New User Joined:",Username);
@@ -43,8 +43,18 @@ const Room = () => {
     const handleCallAccepted = useCallback(async({from,ans}) => {
         await peer.setLocalDescription(ans);
         console.log("Call Accepted!");
-      },[],)
+        for(const track of myStream.getTracks()){
+            peer.peer.addTrack(track,myStream)
+        }
+      },[myStream]);
     
+
+    useEffect(()=>{
+        peer.peer.addEventListener('track',async ev =>{
+            const remoteStream = ev.streams;
+            setRemoteStream(remoteStream);
+        })
+    },[])
 
     useEffect(()=>{
         socket.on("user-joined", handleUserJoined);
@@ -65,6 +75,9 @@ const Room = () => {
         {remoteSocketId && <button onClick={handleCallUser}>Call</button>}
         {
             myStream && <ReactPlayer url={myStream} width="300px" height="300px" playing muted/>
+        }
+        {
+            remoteStream && <ReactPlayer url={remoteStream} width="300px" height="300px" playing muted/>
         }
     </div>
     )
