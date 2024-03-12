@@ -10,8 +10,8 @@ const App = () => {
 
   return (
     <Routes>
-      <Route path='/' element={<Lobby/>}/>
-      <Route path='/room' element={<Room/>}/>
+      <Route path="/" element={<Lobby />} />
+        <Route path="/room/:roomId" element={<Room />} />
     </Routes>
   )
 }

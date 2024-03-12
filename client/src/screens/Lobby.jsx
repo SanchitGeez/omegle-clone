@@ -1,41 +1,61 @@
-import React from 'react'
-import { useState, useCallback,useEffect } from 'react';   
-import "./Lobby.css"
-import { useSocket } from '../context/SocketProvider';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useCallback, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSocket } from "../context/SocketProvider";
 
-const Lobby = () => {
-    const socket = useSocket();
-    const navigate = useNavigate(); 
-    const [Username, setUsername] = useState("");
+const LobbyScreen = () => {
+  const [email, setEmail] = useState("");
+  const [room, setRoom] = useState("");
 
-    const handleJoin = useCallback((e) =>{
-        e.preventDefault();
-        socket.emit("room-join",{Username})
-    },[Username,socket])
+  const socket = useSocket();
+  const navigate = useNavigate();
 
-    const handleJoinRoom = useCallback((data)=>{
-        const {Username} = data;
-        console.log(Username);
-        navigate("/room")
-    },[])
+  const handleSubmitForm = useCallback(
+    (e) => {
+      e.preventDefault();
+      socket.emit("room:join", { email, room });
+    },
+    [email, room, socket]
+  );
 
-    useEffect(() => {
-        socket.on("room-join", handleJoinRoom);
-        return ()=>{
-            socket.off("room-join",handleJoinRoom);
-        }
-    }, [socket, handleJoinRoom])
-    
-    return (
-    <>
-        <h1>LOBBY</h1>
-        <form onSubmit={handleJoin}>
-            <input type="text" placeholder='Enter Username' value={Username} onChange={(e)=>{setUsername(e.target.value)}}/>
-            <button type='submit'>JOIN</button>
-        </form>
-    </>
-    )
-}
+  const handleJoinRoom = useCallback(
+    (data) => {
+      const { room } = data;
+      navigate(`/room/${room}`);
+    },
+    [navigate]
+  );
 
-export default Lobby
+  useEffect(() => {
+    socket.on("room:join", handleJoinRoom);
+    return () => {
+      socket.off("room:join", handleJoinRoom);
+    };
+  }, [socket, handleJoinRoom]);
+
+  return (
+    <div>
+      <h1>Lobby</h1>
+      <form onSubmit={handleSubmitForm}>
+        <label htmlFor="email">Email ID</label>
+        <input
+          type="email"
+          id="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <br />
+        <label htmlFor="room">Room Number</label>
+        <input
+          type="text"
+          id="room"
+          value={room}
+          onChange={(e) => setRoom(e.target.value)}
+        />
+        <br />
+        <button>Join</button>
+      </form>
+    </div>
+  );
+};
+
+export default LobbyScreen;
